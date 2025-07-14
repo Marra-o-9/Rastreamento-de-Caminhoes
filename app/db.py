@@ -43,6 +43,14 @@ def finalize_trip(placa):
     if not rows:
         return {'erro': 'Nenhum dado encontrado para essa placa'}
 
-    resumo = calcular_resumo_rota(rows)
-    exportar_para_google_sheets(resumo, rows)
-    return resumo
+    resumo_completo = calcular_resumo_rota(rows)
+    if 'erro' in resumo_completo:
+        return resumo_completo
+
+    exportar_para_google_sheets(resumo_completo, resumo_completo['pontos_rota'])
+    return {
+        'placa': resumo_completo['placa'],
+        'distancia_km': resumo_completo['distancia_km'],
+        'tempo_minutos': resumo_completo['tempo_minutos'],
+        'paradas_detectadas': resumo_completo['paradas_detectadas']
+    }
