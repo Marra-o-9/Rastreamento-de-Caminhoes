@@ -1,8 +1,7 @@
 # app/db.py
 
 import sqlite3
-from datetime import datetime
-from .utils import calcular_resumo_rota
+from .rota_analisador import analisar_rota
 from .sheets_exporter import exportar_para_google_sheets
 
 def get_db_connection():
@@ -35,7 +34,6 @@ def insert_location(data):
 def finalize_trip(placa):
     conn = get_db_connection()
     cur = conn.cursor()
-
     cur.execute('SELECT * FROM localizacoes WHERE placa = ? ORDER BY timestamp', (placa,))
     rows = cur.fetchall()
     conn.close()
@@ -43,14 +41,14 @@ def finalize_trip(placa):
     if not rows:
         return {'erro': 'Nenhum dado encontrado para essa placa'}
 
-    resumo_completo = calcular_resumo_rota(rows)
-    if 'erro' in resumo_completo:
-        return resumo_completo
+    resumo = analisar_rota(rows)
+    if 'erro' in resumo:
+        return resumo
 
-    exportar_para_google_sheets(resumo_completo, resumo_completo['pontos_rota'])
+    exportar_para_google_sheets(resumo, resumo['pontos_rota'])
     return {
-        'placa': resumo_completo['placa'],
-        'distancia_km': resumo_completo['distancia_km'],
-        'tempo_minutos': resumo_completo['tempo_minutos'],
-        'paradas_detectadas': resumo_completo['paradas_detectadas']
+        'placa': resumo['placa'],
+        'distancia_km': resumo['distancia_km'],
+        'tempo_minutos': resumo['tempo_minutos'],
+        'paradas_detectadas': resumo['paradas_detectadas']
     }
